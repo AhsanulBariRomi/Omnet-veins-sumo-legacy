@@ -1,0 +1,51 @@
+# ===================================================
+# Ignored Notes, Guides, and Temporary Documents
+# ===================================================
+git.txt
+Git.txt
+README.txt
+*.docx
+*.zip
+
+# ===================================================
+# Generated Data, Logs, and Metrics (*.csv required)
+# ===================================================
+*.csv
+*.pcap
+
+# ===================================================
+# OMNeT++ Simulation Results & Vector Data
+# ===================================================
+*.vec
+*.vci
+*.sca
+results/
+Backup CSV/
+
+# ===================================================
+# C++ Build Artifacts & Binaries
+# ===================================================
+*.o
+*.out
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.def
+out/
+veins-master/out/
+veins-master/bin/veins
+veins-master/bin/veins_dbg
+veins-master/src/veins/modules/messages/*_m.cc
+veins-master/src/veins/modules/messages/*_m.h
+
+# ===================================================
+# IDE and OS-Specific Files
+# ===================================================
+.vscode/
+.csettings/
+.settings/
+Thumbs.db
+.DS_Store
+~$*
