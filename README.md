@@ -21,22 +21,6 @@ All three systems are evaluated across communication round-trip latency (RTT), n
 
 ---
 
-
-## Thesis Modifications & Instrumentation
-
-To enable an objective, scientific comparison against the `libsumo` and `gRPC` architectures, this legacy codebase incorporates custom high-resolution logging probes:
-
-1. **Microsecond Step Latency & Wire Payload Logger (`TraCIScenarioManager.cc:666–685`)**
-   - Measures exact socket round-trip time ($RTT_{\mu s}$) for every simulation timestep using `std::chrono::high_resolution_clock`.
-   - Records timestep, RTT ($\mu s$), active vehicle count, and socket wire payload size (bytes) to `Traci_RTT_<sim-time>.csv`.
-2. **Kinematic Physical Validation Logger (`TraCIScenarioManager.cc:1192–1208`)**
-   - Logs timestamp, vehicle ID, 3D coordinates $(X, Y, Z)$, speed, acceleration, vehicle dimensions, and signals to `Legacy_physics.csv`.
-   - Used in post-processing to verify that vehicle kinematics across TraCI, Libsumo, and gRPC remain identical down to 14 significant digits.
-3. **Dedicated Benchmark Parameter Sweeps (`omnetpp.ini`)**
-   - Configured with identical scenario parameters, seed sets, and run limits across all three projects (`Throughput_Evaluation`, `Evaluation_Frequency`, and `Evaluation_Seeds`).
-
----
-
 ## Prerequisites & System Requirements
 
 The framework is developed and tested on **Ubuntu Linux (20.04 / 22.04 / 24.04 LTS)** or **Windows Subsystem for Linux 2 (WSL2)**.
@@ -131,49 +115,6 @@ opp_run -u Cmdenv -l ../../src/veins -n .:../../src/veins omnetpp.ini -c Through
 Executes repetitions across vehicle traffic frequencies and extracts completion times:
 ```bash
 opp_run -u Cmdenv -l ../../src/veins -n .:../../src/veins omnetpp.ini -c Evaluation_Frequency | awk 'BEGIN { print "SEED,FREQUENCY,TIME" } /Scenario:/ { for(i=1;i<=NF;i++) { if($i ~ /\$frequency=/) { f=$i; gsub(/\$frequency=|,/, "", f); } if($i ~ /\$repetition=/) { s=$i; gsub(/\$repetition=|,/, "", s); } } } /100% completed/ { gsub(/s/, "", $6); print s "," f "," $6; fflush(); }' > traci_frequency.csv
-```
-
----
-
-## Generated Metrics & Validation Logs
-
-When running simulations, the following evaluation data files are generated in `examples/veins/`:
-
-| Output File | Contents & Purpose |
-| :--- | :--- |
-| **`Legacy_physics.csv`** | High-precision timestep trajectory records (ID, $(X, Y, Z)$, Speed, Acceleration, Signals, Dimensions) used to validate physical equivalence against Libsumo and gRPC. |
-| **`Traci_RTT_<sim-time>.csv`** | Timestep-by-timestep socket round-trip latency ($RTT_{\mu s}$), active vehicle counts, and TCP payload byte sizes. |
-| **`traci_throughput.csv`** | Macro simulation speed (simulated seconds per real elapsed second) across scenario duration. |
-| **`traci_frequency.csv`** | Wall-clock execution time under varying vehicle injection rates and seed repetitions. |
-
----
-
-## Repository Structure
-
-```
-Legacy_Veins_Traci/
-├── .gitignore                     # Git ignore rules (*.csv, git.txt, build junk, pcaps)
-├── git.txt                        # Step-by-step GitLab deployment guide
-├── README.md                      # Project documentation and deployment guide
-└── veins-master/                  # Veins source code with TraCI baseline
-    ├── configure                  # OMNeT++ build configuration script
-    ├── Makefile                   # Top-level makefile
-    ├── sumo-launchd.py            # Python TraCI TCP proxy daemon
-    ├── bin/                       # Compiled helper binaries (veins_launchd)
-    ├── src/veins/modules/mobility/traci/
-    │   ├── TraCIScenarioManager.cc# TraCI scenario manager with RTT & validation probes
-    │   ├── TraCIScenarioManager.h
-    │   ├── TraCIConnection.cc     # TCP socket abstraction layer
-    │   ├── TraCIConnection.h
-    │   ├── TraCICommandInterface.cc
-    │   └── TraCIMobility.cc       # Vehicle mobility and kinematic state tracking
-    └── examples/veins/            # Simulation scenario configuration
-        ├── omnetpp.ini            # Simulation configurations & evaluation parameter sweeps
-        ├── erlangen.sumo.cfg      # SUMO scenario configuration
-        ├── erlangen.net.xml       # Road network definition
-        ├── erlangen.rou.xml       # Vehicle route demand definitions
-        ├── erlangen.poly.xml      # Scenario obstacle polygons
-        └── erlangen.launchd.xml   # Launch daemon configuration
 ```
 
 ---
